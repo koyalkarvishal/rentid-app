@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              String           @id @default(uuid())
+  fullName        String
+  email           String           @unique
+  mobile          String           @unique
+  role            String           @default("TENANT") // "TENANT" or "LANDLORD"
+  createdAt       DateTime         @default(now())
+  tenantProfile   TenantProfile?
+  landlordProfile LandlordProfile?
+}
+
+model TenantProfile {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id])
+  tenantIdCode    String          @unique
+  qrCodeUrl       String?
+  houseNo         String?
+  currentAddress  String?
+  currentRent     Float?
+  depositPaid     Float?
+  agreements      Agreement[]
+  tenancies       Tenancy[]
+  consentSetting  ConsentSetting?
+  receivedReviews Review[]
+  createdAt       DateTime        @default(now())
+}
+
+model LandlordProfile {
+  id         String      @id @default(uuid())
+  userId     String      @unique
+  user       User        @relation(fields: [userId], references: [id])
+  properties Property[]
+  agreements Agreement[]
+  reviews    Review[]
+  createdAt  DateTime    @default(now())
+}
+
+model Property {
+  id         String          @id @default(uuid())
+  landlordId String
+  landlord   LandlordProfile @relation(fields: [landlordId], references: [id])
+  houseNo    String
+  building   String?
+  address    String
+  rentAmount Float
+  deposit    Float
+  agreements Agreement[]
+  tenancies  Tenancy[]
+  createdAt  DateTime        @default(now())
+}
+
+model Agreement {
+  id               String          @id @default(uuid())
+  agreementCode    String          @unique
+  propertyId       String
+  property         Property        @relation(fields: [propertyId], references: [id])
+  tenantId         String
+  tenant           TenantProfile   @relation(fields: [tenantId], references: [id])
+  landlordId       String
+  landlord         LandlordProfile @relation(fields: [landlordId], references: [id])
+  startDate        DateTime
+  endDate          DateTime?
+  rentAmount       Float
+  depositAmount    Float
+  status           String          @default("ACTIVE") // ACTIVE, TERMINATED
+  tenancy          Tenancy?
+  createdAt        DateTime        @default(now())
+}
+
+model Tenancy {
+  id          String        @id @default(uuid())
+  agreementId String        @unique
+  agreement   Agreement     @relation(fields: [agreementId], references: [id])
+  tenantId    String
+  tenant      TenantProfile @relation(fields: [tenantId], references: [id])
+  propertyId  String
+  property    Property      @relation(fields: [propertyId], references: [id])
+  startDate   DateTime
+  reviews     Review[]
+  createdAt   DateTime      @default(now())
+}
+
+model Review {
+  id             String          @id @default(uuid())
+  tenancyId      String
+  tenancy        Tenancy         @relation(fields: [tenancyId], references: [id])
+  targetTenantId String
+  targetTenant   TenantProfile   @relation(fields: [targetTenantId], references: [id])
+  landlordId     String
+  landlord       LandlordProfile @relation(fields: [landlordId], references: [id])
+  overallRating  Float
+  rentPayment    Float           @default(5.0)
+  maintenance    Float           @default(5.0)
+  comment        String
+  createdAt      DateTime        @default(now())
+}
+
+model ConsentSetting {
+  id                 String        @id @default(uuid())
+  tenantId           String        @unique
+  tenant             TenantProfile @relation(fields: [tenantId], references: [id])
+  shareIdentity      Boolean       @default(true)
+  shareHouseDetails  Boolean       @default(true)
+  shareRentalHistory Boolean       @default(true)
+  shareCurrentAgr    Boolean       @default(true)
+  updatedAt          DateTime      @updatedAt
+}
