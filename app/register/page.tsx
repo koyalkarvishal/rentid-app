@@ -100,11 +100,18 @@ export default function RegisterPage() {
           <div className="text-center space-y-4">
             <div className="bg-slate-900 border border-blue-500/40 p-4 rounded-xl">
               <div className="text-xs text-blue-400 font-semibold tracking-wider uppercase mb-1">Digital RENTID Card</div>
-              <div className="text-lg font-bold">{result.user.fullName}</div>
-              <div className="text-sm font-mono text-slate-400 mb-3">{result.tenantIdCode}</div>
-              
-              <div className="bg-white p-3 rounded-lg inline-block mb-3">
-                <img src={result.qrCodeUrl} alt="Tenant QR Code" className="w-40 h-40" />
+             <div className="text-lg font-bold">
+  {result?.user?.fullName || result?.fullName || "Tenant"}
+</div>
+<div className="text-sm font-mono text-slate-400 mb-3">
+  {result?.tenantIdCode || result?.tenantId || ""}
+</div>
+
+<div className="bg-white p-3 rounded-lg inline-block mb-3">
+  {result?.qrCodeUrl && (
+    <img src={result.qrCodeUrl} alt="Tenant QR Code" className="w-40 h-40" />
+  )}
+</div>
               </div>
               
               <p className="text-xs text-slate-400">Scan this QR code to verify tenant profile</p>
